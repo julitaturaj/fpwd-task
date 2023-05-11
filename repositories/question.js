@@ -8,7 +8,7 @@ const makeQuestionRepository = fileName => {
   }
 
   const _saveQuestionsToFile = async questions => {
-    await writeFile(fileName, questions, { encoding: 'utf-8' })
+    await writeFile(fileName, JSON.stringify(questions), { encoding: 'utf-8' })
   }
 
   const getQuestions = () => {
@@ -22,28 +22,36 @@ const makeQuestionRepository = fileName => {
 
   const addQuestion = async question => {
     const questions = await getQuestions()
-    questions.push({ ...question, id: uuid() })
+    const newQuestion = { ...question, id: uuid() }
+    questions.push(newQuestion)
     await _saveQuestionsToFile(questions)
-    return question
+    return newQuestion
   }
 
   const getAnswers = async questionId => {
     const question = await getQuestionById(questionId)
+    if (!question) {
+      return null
+    }
     return question.answers
   }
 
   const getAnswer = async (questionId, answerId) => {
     const answers = await getAnswers(questionId)
+    if (!answers) {
+      return null
+    }
     return answers.find(({ id }) => id === answerId) || null
   }
 
   const addAnswer = async (questionId, answer) => {
     const questions = await _getQuestionsFromFile()
     const questionToUpdate = questions.find(({ id }) => id === questionId)
-    questionToUpdate.answers.push({ ...answer, id: uuid() })
+    const newAnswer = { ...answer, id: uuid() }
+    questionToUpdate.answers.push(newAnswer)
     // answer saved in questions array by reference
     await _saveQuestionsToFile(questions)
-    return answer
+    return newAnswer
   }
 
   return {

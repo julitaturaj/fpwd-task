@@ -37,11 +37,10 @@ app.get('/questions/:questionId', async (req, res) => {
   const question = await req.repositories.questionRepo.getQuestionById(
     req.params.questionId
   )
-  if (question) {
-    res.json(question)
-  } else {
+  if (!question) {
     throw new Error('Question not found', { httpCode: 404 })
   }
+  res.json(question)
 })
 
 app.post('/questions', async (req, res) => {
@@ -54,6 +53,9 @@ app.get('/questions/:questionId/answers', async (req, res) => {
   const answers = await req.repositories.questionRepo.getAnswers(
     req.params.questionId
   )
+  if (!answers) {
+    throw new Error('Question not found', { httpCode: 404 })
+  }
   res.json(answers)
 })
 
