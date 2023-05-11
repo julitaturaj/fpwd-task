@@ -16,7 +16,7 @@ const validateAnswerOrQuestion = body => {
     errors.push('Author should be provided in request body as string')
 
   if (errors.length) {
-    throw new Error(errors.join(', '), { httpCode: 400 })
+    throw new Error(errors.join(', '), { cause: 400 })
   }
 }
 
@@ -33,34 +33,46 @@ app.get('/questions', async (req, res) => {
   res.json(questions)
 })
 
-app.get('/questions/:questionId', async (req, res) => {
+app.get('/questions/:questionId', async (req, res, next) => {
   const question = await req.repositories.questionRepo.getQuestionById(
     req.params.questionId
   )
   if (!question) {
-    throw new Error('Question not found', { httpCode: 404 })
+    next(new Error('Question not found', { cause: 404 }))
+    return
   }
   res.json(question)
 })
 
-app.post('/questions', async (req, res) => {
-  validateAnswerOrQuestion(req.body)
+app.post('/questions', async (req, res, error) => {
+  try {
+    validateAnswerOrQuestion(req.body)
+  } catch (error) {
+    next(error)
+    return
+  }
   const newQuestion = await req.repositories.questionRepo.addQuestion(req.body)
   res.status(201).json(newQuestion)
 })
 
-app.get('/questions/:questionId/answers', async (req, res) => {
+app.get('/questions/:questionId/answers', async (req, res, next) => {
   const answers = await req.repositories.questionRepo.getAnswers(
     req.params.questionId
   )
   if (!answers) {
-    throw new Error('Question not found', { httpCode: 404 })
+    next(new Error('Question not found', { cause: 404 }))
+    return
   }
   res.json(answers)
 })
 
-app.post('/questions/:questionId/answers', async (req, res) => {
-  validateAnswerOrQuestion(req.body)
+app.post('/questions/:questionId/answers', async (req, res, next) => {
+  try {
+    validateAnswerOrQuestion(req.body)
+  } catch (error) {
+    next(error)
+    return
+  }
   const newAnswer = await req.repositories.questionRepo.addAnswer(
     req.params.questionId,
     req.body
@@ -68,23 +80,24 @@ app.post('/questions/:questionId/answers', async (req, res) => {
   res.status(201).json(newAnswer)
 })
 
-app.get('/questions/:questionId/answers/:answerId', async (req, res) => {
-  const answer = await req.repositories.questionRepo.getAnswerById(
+app.get('/questions/:questionId/answers/:answerId', async (req, res, next) => {
+  const answer = await req.repositories.questionRepo.getAnswer(
     req.params.questionId,
     req.params.answerId
   )
-  if (answer) {
-    res.json(answer)
-  } else {
-    throw new Error('Answer not found', { httpCode: 404 })
+  if (!answer) {
+    next(new Error('Answer or Question not found', { cause: 404 }))
+    return
   }
+  res.json(answer)
 })
 
 app.use((err, req, res, next) => {
-  console.error(err.stack)
-  res.status(err.httpCode || 500).send(err.message || 'Unexpected Error')
+  res.status(err.cause || 500).send(err.message || 'Unexpected Error')
 })
 
 app.listen(PORT, () => {
   console.log(`Responder app listening on port ${PORT}`)
 })
+
+module.exports = app

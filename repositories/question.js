@@ -22,7 +22,11 @@ const makeQuestionRepository = fileName => {
 
   const addQuestion = async question => {
     const questions = await getQuestions()
-    const newQuestion = { ...question, id: uuid() }
+    const newQuestion = {
+      ...question,
+      id: uuid(),
+      answers: []
+    }
     questions.push(newQuestion)
     await _saveQuestionsToFile(questions)
     return newQuestion

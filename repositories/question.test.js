@@ -76,9 +76,6 @@ describe('question repository', () => {
     expect(returnedQuestion.id).toBeDefined()
     expect(returnedQuestion.summary).toEqual(newQuestion.summary)
     expect(returnedQuestion.author).toEqual(newQuestion.author)
-    expect(JSON.stringify(returnedQuestion.answers)).toEqual(
-      JSON.stringify(newQuestion.answers)
-    )
 
     const fileQuestions = JSON.parse(
       await readFile(TEST_QUESTIONS_FILE_PATH, {
@@ -94,9 +91,6 @@ describe('question repository', () => {
     expect(fileQuestion.id).toEqual(returnedQuestion.id)
     expect(fileQuestion.summary).toEqual(newQuestion.summary)
     expect(fileQuestion.author).toEqual(newQuestion.author)
-    expect(JSON.stringify(fileQuestion.answers)).toEqual(
-      JSON.stringify(newQuestion.answers)
-    )
   })
 
   test('[getAnswers] show return array of answers', async () => {
